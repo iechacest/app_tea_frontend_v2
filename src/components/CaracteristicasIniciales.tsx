@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useApp, Caracteristica, UsuarioCompleto } from '../context/AppContext';
+import { useApp } from '../context/AppContext';
+import type { Caracteristica, UsuarioCompleto } from '../context/AppContext';
 import { Sliders, MessageCircle, Eye, Boxes, Heart, Users } from 'lucide-react';
 import { getContrasenaTemp } from './Registro';
 import { getThemeColors, isDarkTheme } from '../config/themes';
 import BackgroundBubbles from './ui/BackgroundBubbles';
+import { crearCaracteristicaBD } from '../api/api';
 
 const caracteristicasDefault = [
   {
@@ -48,6 +50,7 @@ export default function CaracteristicasIniciales() {
     setCaracteristicas, 
     setCurrentScreen, 
     usuario,
+    usuarioActual,   // ✅ FALTABA ESTA LÍNEA
     theme,
     fontSize,
     nivelTEA,
@@ -58,7 +61,8 @@ export default function CaracteristicasIniciales() {
     setTheme,
     setFontSize,
     setNivelTEA
-  } = useApp();
+} = useApp();
+
   
   const themeColors = getThemeColors(theme);
   const [valores, setValores] = useState<{ [key: string]: number }>(
@@ -72,35 +76,50 @@ export default function CaracteristicasIniciales() {
     });
   };
 
-  const handleSubmit = () => {
-    const caracteristicasIniciales: Caracteristica[] = caracteristicasDefault.map(c => ({
-      id: c.id,
+  const handleSubmit = async () => {
+  if (!usuarioActual) {
+    alert("No se encontró usuario actual.");
+    return;
+  }
+
+  try {
+    const caracteristicasParaGuardar = caracteristicasDefault.map((c, index) => ({
       nombre: c.nombre,
       descripcion: c.descripcion,
-      valorInicial: valores[c.id],
-      valorActual: valores[c.id]
+      valor_inicial: valores[c.id],
+      valor_actual: valores[c.id],
+      fuente: "INICIAL",
+      id_usuario: usuarioActual.id_usuario,
+      id_rasgo: index + 1 // correlativo
     }));
 
-    setCaracteristicas(caracteristicasIniciales);
-
-    // Crear usuario completo y guardarlo
-    if (usuario) {
-      const nuevoUsuario: UsuarioCompleto = {
-        ...usuario,
-        contrasena: getContrasenaTemp(),
-        theme,
-        fontSize,
-        nivelTEA,
-        responsable,
-        caracteristicas: caracteristicasIniciales
-      };
-
-      setUsuarios([...usuarios, nuevoUsuario]);
-      setUsuarioActual(nuevoUsuario);
+    // 1️⃣ Guardar todas las características en el backend
+    const respuestasBD = [];
+    for (const car of caracteristicasParaGuardar) {
+      const resp = await crearCaracteristicaBD(car);
+      respuestasBD.push(resp);
     }
 
-    setCurrentScreen('menu-principal');
-  };
+    // 2️⃣ Guardarlas en el contexto (versión compatible con tu Front)
+    const caracteristicasContext: Caracteristica[] = respuestasBD.map((bdCar: any) => ({
+      id_caracteristica: bdCar.idCaracteristica,
+      nombre: bdCar.nombre,
+      descripcion: bdCar.descripcion,
+      valor_inicial: Number(bdCar.valor_inicial),
+      valor_actual: Number(bdCar.valor_actual)
+    }));
+
+    setCaracteristicas(caracteristicasContext);
+
+    // 3️⃣ Avanzar a menú principal
+    setCurrentScreen("menu-principal");
+
+  } catch (error) {
+    console.error("❌ Error guardando características:", error);
+    alert("No se pudieron guardar las características.");
+  }
+};
+
 
   return (
     <div 
