@@ -3,7 +3,7 @@ import axios from "axios";
 // 🟢 Base URL del backend
 // En dev:  VITE_API_URL=http://localhost:8098
 // En prod: VITE_API_URL=https://apptea-production.up.railway.app
-const API = "http://localhost:8098/api";
+const API = "https://apptea-production.up.railway.app/api";
 const API_BASE = `${API}`;
 
 // ========================
