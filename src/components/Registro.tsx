@@ -3,13 +3,14 @@ import { useApp } from '../context/AppContext';
 import { Sparkles, User, Calendar, Mail, Lock, UserCircle2 } from 'lucide-react';
 import { getThemeColors, isDarkTheme } from '../config/themes';
 import BackgroundBubbles from './ui/BackgroundBubbles';
+import { crearUsuario } from '../api/api';
 
 let contrasenaTemp = '';
 
 export const getContrasenaTemp = () => contrasenaTemp;
 
 export default function Registro() {
-  const { setUsuario, setCurrentScreen, usuarios, theme } = useApp();
+  const { setUsuario, setCurrentScreen, usuarios, theme, setUsuarioActual, usuarioActual } = useApp();
   const themeColors = getThemeColors(theme);
   
   const [formData, setFormData] = useState({
@@ -23,35 +24,47 @@ export default function Registro() {
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    const emailExiste = usuarios.find(u => u.email === formData.email);
-    if (emailExiste) {
-      setError('Este correo electrónico ya está registrado.');
-      return;
-    }
-
-    contrasenaTemp = formData.contrasena;
-    
-    setUsuario({
-      nombres: formData.nombres,
-      apellidos: `${formData.apellidoPaterno} ${formData.apellidoMaterno}`.trim(),
-      fechaNacimiento: formData.fechaNacimiento,
-      genero: formData.genero,
-      email: formData.email
-    });
-
-    setCurrentScreen('configuracion-inicial');
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
+
+  try {
+    // DATA PARA BACKEND
+    const payload = {
+      nombres: formData.nombres,
+      apellido_pat: formData.apellidoPaterno,
+      apellido_mat: formData.apellidoMaterno,
+      fecha_nac: formData.fechaNacimiento,
+      nivel_tea: 1,
+      email: formData.email,
+      password: formData.contrasena,
+      genero: formData.genero.charAt(0).toUpperCase(),
+      pais: "Bolivia"
+    };
+
+    // CREAR EN BACKEND
+    const nuevoUsuario = await crearUsuario(payload);
+
+    // 🔥 🔥 🔥 ESTA ES LA LÍNEA IMPORTANTE 🔥 🔥 🔥
+    setUsuarioActual(nuevoUsuario);
+
+    // SI QUIERES, elimina la otra
+    // setUsuario(nuevoUsuario);
+
+    // SIGUIENTE PANTALLA
+    setCurrentScreen("configuracion-inicial");
+
+  } catch (err: any) {
+    setError("Error al registrarse");
+  }
+};
+
 
   return (
     <div 
