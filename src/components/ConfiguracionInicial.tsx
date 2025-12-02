@@ -1,22 +1,50 @@
 import { useState, useEffect } from 'react';
-import { useApp, Theme, FontSize, NivelTEA } from '../context/AppContext';
+import { useApp } from '../context/AppContext';
+import type { Theme, FontSize, NivelTEA } from '../context/AppContext';
 import { Palette, Type, Brain, Check } from 'lucide-react';
 import { getThemeColors, THEMES, isDarkTheme } from '../config/themes';
 import { applyFontSize } from '../config/fontSize';
 import BackgroundBubbles from './ui/BackgroundBubbles';
+import { guardarConfiguracion } from '../api/api';
+import { actualizarNivelTEA } from '../api/api';
 
 export default function ConfiguracionInicial() {
-  const { theme, setTheme, fontSize, setFontSize, nivelTEA, setNivelTEA, setCurrentScreen } = useApp();
+  const { theme, setTheme, fontSize, setFontSize, nivelTEA, setNivelTEA, setCurrentScreen, usuarioActual } = useApp();
   const themeColors = getThemeColors(theme);
-
-  // Aplicar cambios en tiempo real
+// Aplicar cambios en tiempo real
   useEffect(() => {
     applyFontSize(fontSize);
   }, [fontSize]);
+const handleContinue = async () => {
+  if (!usuarioActual || !usuarioActual.id_usuario) {
+    console.error("No hay usuario actual cargado.");
+    return;
+  }
 
-  const handleContinue = () => {
-    setCurrentScreen('anadir-responsable');
-  };
+  const idUsuario = usuarioActual.id_usuario;
+
+  try {
+    // 1️⃣ Guardar configuración en tabla configuracion
+    const configPayload = {
+      tema_visual: theme,
+      tamanio_fuente: fontSize,
+      id_usuario: idUsuario
+    };
+
+    await guardarConfiguracion(configPayload);
+
+    // 2️⃣ Actualizar nivel TEA del usuario
+    await actualizarNivelTEA(idUsuario, nivelTEA);
+
+    // 3️⃣ Avanzar al siguiente paso
+    setCurrentScreen("anadir-responsable");
+
+  } catch (error: any) {
+    console.error("Error al guardar la configuración:", error);
+    alert("Hubo un problema al guardar la configuración.");
+  }
+};
+
 
   const handleSeleccionarFontSize = (size: FontSize) => {
     setFontSize(size);
@@ -101,15 +129,14 @@ export default function ConfiguracionInicial() {
                 <button
                   key={t.id}
                   onClick={() => setTheme(t.id)}
-                  className={`p-6 rounded-xl border-2 transition-all hover:scale-[1.03] hover:shadow-xl relative ${
-                    theme === t.id ? 'ring-2' : ''
-                  }`}
-                  style={{
-                    backgroundColor: t.id === 'diseno2' ? t.cardBg : t.id === 'diseno3' ? `${t.cardBg}E6` : `${t.cardBg}F5`,
-                    borderColor: theme === t.id ? t.primary : t.inputBorder,
-                    ringColor: t.primary,
-                    boxShadow: theme === t.id ? `0 0 0 4px ${t.primary}20` : undefined
-                  }}
+                  className={`p-6 rounded-xl border-2 transition-all hover:scale-[1.03] hover:shadow-xl relative
+  ${theme === t.id ? `ring-2 ring-[${t.primary}]` : ''}`}
+style={{
+  backgroundColor: t.id === 'diseno2' ? t.cardBg : t.id === 'diseno3' ? `${t.cardBg}E6` : `${t.cardBg}F5`,
+  borderColor: theme === t.id ? t.primary : t.inputBorder,
+  boxShadow: theme === t.id ? `0 0 0 4px ${t.primary}20` : undefined
+}}
+
                 >
                   {theme === t.id && (
                     <div 
@@ -159,15 +186,14 @@ export default function ConfiguracionInicial() {
                 <button
                   key={option.size}
                   onClick={() => handleSeleccionarFontSize(option.size)}
-                  className={`rounded-xl p-6 border transition-all hover:scale-[1.03] hover:shadow-xl ${
-                    fontSize === option.size ? 'ring-2' : ''
-                  }`}
-                  style={{
-                    backgroundColor: isDarkTheme(theme) ? themeColors.cardBg : 'white',
-                    borderColor: fontSize === option.size ? themeColors.secondary : themeColors.inputBorder,
-                    ringColor: themeColors.secondary,
-                    boxShadow: fontSize === option.size ? `0 0 0 4px ${themeColors.secondary}20` : undefined
-                  }}
+                  className={`rounded-xl p-6 border transition-all hover:scale-[1.03] hover:shadow-xl
+  ${fontSize === option.size ? `ring-2 ring-[${themeColors.secondary}]` : ''}`}
+style={{
+  backgroundColor: isDarkTheme(theme) ? themeColors.cardBg : 'white',
+  borderColor: fontSize === option.size ? themeColors.secondary : themeColors.inputBorder,
+  boxShadow: fontSize === option.size ? `0 0 0 4px ${themeColors.secondary}20` : undefined
+}}
+
                 >
                   {fontSize === option.size && (
                     <div 
@@ -216,15 +242,13 @@ export default function ConfiguracionInicial() {
                 <button
                   key={nivel}
                   onClick={() => setNivelTEA(nivel as NivelTEA)}
-                  className={`p-6 rounded-xl border-2 transition-all hover:scale-[1.03] hover:shadow-xl relative ${
-                    nivelTEA === nivel ? 'ring-2' : ''
-                  }`}
-                  style={{
-                    backgroundColor: isDarkTheme(theme) ? themeColors.cardBg : 'white',
-                    borderColor: nivelTEA === nivel ? themeColors.accent1 : themeColors.inputBorder,
-                    ringColor: themeColors.accent1,
-                    boxShadow: nivelTEA === nivel ? `0 0 0 4px ${themeColors.accent1}20` : undefined
-                  }}
+                  className={`p-6 rounded-xl border-2 transition-all hover:scale-[1.03] hover:shadow-xl relative
+  ${nivelTEA === nivel ? `ring-2 ring-[${themeColors.accent1}]` : ''}`}
+style={{
+  backgroundColor: isDarkTheme(theme) ? themeColors.cardBg : 'white',
+  borderColor: nivelTEA === nivel ? themeColors.accent1 : themeColors.inputBorder,
+  boxShadow: nivelTEA === nivel ? `0 0 0 4px ${themeColors.accent1}20` : undefined
+}}
                 >
                   {nivelTEA === nivel && (
                     <div 
