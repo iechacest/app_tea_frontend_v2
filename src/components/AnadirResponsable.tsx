@@ -4,29 +4,63 @@ import { UserPlus } from 'lucide-react';
 import { getThemeColors, isDarkTheme } from '../config/themes';
 import BackgroundBubbles from './ui/BackgroundBubbles';
 import LightGlows from './ui/LightGlows';
-
+import { crearResponsableBD } from "../api/api";
+import { vincularResponsable } from '../api/api';
 export default function AnadirResponsable() {
-  const { setResponsable, setCurrentScreen, theme } = useApp();
+  const { setResponsable, setCurrentScreen, theme, usuarioActual } = useApp();
   const themeColors = getThemeColors(theme);
+
   const [formData, setFormData] = useState({
-    nombre: '',
-    relacion: '',
-    email: '',
-    telefono: ''
-  });
+  nombre: '',
+  apellido_pat: '',
+  apellido_mat: '',
+  relacion: '',
+  email: ''
+});
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setResponsable({
+  if (!usuarioActual) {
+    alert("No se encontró el usuario actual.");
+    return;
+  }
+
+  try {
+    // 1️⃣ CREAR RESPONSABLE
+    const payloadResponsable = {
       nombre: formData.nombre,
-      relacion: formData.relacion,
+      apellido_pat: formData.apellido_pat,
+      apellido_mat: formData.apellido_mat,
+      tipo_res: formData.relacion,
       email: formData.email,
-      telefono: formData.telefono || undefined
-    });
+      genero: null,
+      id_usuario: usuarioActual!.id_usuario
+    };
 
-    setCurrentScreen('caracteristicas-iniciales');
-  };
+    const nuevoResponsable = await crearResponsableBD(payloadResponsable);
+    console.log("Responsable creado:", nuevoResponsable);
+
+    // 2️⃣ CREAR MONITOREA (vincular responsable con usuario)
+    const payloadMonitorea = {
+      id_usuario: usuarioActual!.id_usuario,
+      id_responsable: nuevoResponsable.id_responsable
+    };
+
+    await vincularResponsable(payloadMonitorea);
+    console.log("Monitorea creado:", payloadMonitorea);
+
+    // 3️⃣ Guardarlo en contexto
+    setResponsable(nuevoResponsable);
+
+    // 4️⃣ Ir a siguiente pantalla
+    setCurrentScreen("caracteristicas-iniciales");
+
+  } catch (error) {
+    console.error("Error completo al añadir responsable:", error);
+    alert("No se pudo guardar el responsable ni vincularlo.");
+  }
+};
+
 
   const handleOmitir = () => {
     setResponsable(null);
@@ -39,6 +73,16 @@ export default function AnadirResponsable() {
       [e.target.name]: e.target.value
     });
   };
+  const payload = {
+  nombre: formData.nombre,
+  apellido_pat: formData.apellido_pat,
+  apellido_mat: formData.apellido_mat,
+  tipo_res: formData.relacion,
+  email: formData.email,
+  genero: null,
+  id_usuario: usuarioActual!.id_usuario
+};
+
 
   return (
     <div 
@@ -97,34 +141,69 @@ export default function AnadirResponsable() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="nombre" style={{ color: themeColors.textPrimary }} className="block mb-2">
-              Nombre completo
-            </label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 transition-all focus:scale-[1.01]"
-              style={{
-                borderColor: themeColors.inputBorder,
-                backgroundColor: theme === 'diseno2' ? themeColors.background : 'white',
-                color: themeColors.textPrimary
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = themeColors.inputFocus;
-                e.target.style.boxShadow = `0 0 0 4px ${themeColors.inputFocus}15`;
-                e.target.style.outline = 'none';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = themeColors.inputBorder;
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
+          {/* Nombre */}
+<div>
+  <label htmlFor="nombre" style={{ color: themeColors.textPrimary }} className="block mb-2">
+    Nombre
+  </label>
+  <input
+    type="text"
+    id="nombre"
+    name="nombre"
+    value={formData.nombre}
+    onChange={handleChange}
+    required
+    className="w-full px-4 py-3 rounded-xl border-2 transition-all focus:scale-[1.01]"
+    style={{
+      borderColor: themeColors.inputBorder,
+      backgroundColor: theme === 'diseno2' ? themeColors.background : 'white',
+      color: themeColors.textPrimary
+    }}
+  />
+</div>
+
+{/* Apellido paterno */}
+<div>
+  <label htmlFor="apellido_pat" style={{ color: themeColors.textPrimary }} className="block mb-2">
+    Apellido paterno
+  </label>
+  <input
+    type="text"
+    id="apellido_pat"
+    name="apellido_pat"
+    value={formData.apellido_pat}
+    onChange={handleChange}
+    required
+    className="w-full px-4 py-3 rounded-xl border-2 transition-all focus:scale-[1.01]"
+    style={{
+      borderColor: themeColors.inputBorder,
+      backgroundColor: theme === 'diseno2' ? themeColors.background : 'white',
+      color: themeColors.textPrimary
+    }}
+  />
+</div>
+
+{/* Apellido materno */}
+<div>
+  <label htmlFor="apellido_mat" style={{ color: themeColors.textPrimary }} className="block mb-2">
+    Apellido materno
+  </label>
+  <input
+    type="text"
+    id="apellido_mat"
+    name="apellido_mat"
+    value={formData.apellido_mat}
+    onChange={handleChange}
+    required
+    className="w-full px-4 py-3 rounded-xl border-2 transition-all focus:scale-[1.01]"
+    style={{
+      borderColor: themeColors.inputBorder,
+      backgroundColor: theme === 'diseno2' ? themeColors.background : 'white',
+      color: themeColors.textPrimary
+    }}
+  />
+</div>
+
 
           <div>
             <label htmlFor="relacion" style={{ color: themeColors.textPrimary }} className="block mb-2">
@@ -189,35 +268,6 @@ export default function AnadirResponsable() {
               }}
             />
           </div>
-
-          <div>
-            <label htmlFor="telefono" style={{ color: themeColors.textPrimary }} className="block mb-2">
-              Teléfono <span style={{ color: themeColors.textSecondary }}>(opcional)</span>
-            </label>
-            <input
-              type="tel"
-              id="telefono"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border-2 transition-all focus:scale-[1.01]"
-              style={{
-                borderColor: themeColors.inputBorder,
-                backgroundColor: theme === 'diseno2' ? themeColors.background : 'white',
-                color: themeColors.textPrimary
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = themeColors.inputFocus;
-                e.target.style.boxShadow = `0 0 0 4px ${themeColors.inputFocus}15`;
-                e.target.style.outline = 'none';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = themeColors.inputBorder;
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-
           <div className="flex flex-col gap-3 mt-6">
             <button
               type="submit"
