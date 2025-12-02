@@ -3,7 +3,7 @@ import axios from "axios";
 // 🟢 Base URL del backend
 // En dev:  VITE_API_URL=http://localhost:8098
 // En prod: VITE_API_URL=https://apptea-production.up.railway.app
-const API = import.meta.env.VITE_API_URL || "http://localhost:8098";
+const API = "http://localhost:8098/api";
 const API_BASE = `${API}`;
 
 // ========================
@@ -276,6 +276,17 @@ export const crearResponsable = async (responsable: Responsable) => {
   if (!response.ok) {
     throw new Error("Error al crear responsable");
   }
+  return await response.json();
+};
+
+export const crearResponsableBD = async (data: any) => {
+  const response = await fetch("http://localhost:8098/api/responsable/crear", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) throw new Error("Error al crear responsable");
 
   return await response.json();
 };
@@ -376,4 +387,46 @@ export const eliminarResponsableMonitoreo = async (
     console.error("Error al eliminar el monitoreo:", error);
     throw new Error("Error al eliminar el monitoreo");
   }
+};
+
+// src/api/api.ts
+export const crearUsuario = async (data: any) => {
+  const response = await fetch(`${API_BASE}/usuario/crear`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al crear usuario");
+  }
+
+  return await response.json();
+};
+
+
+export const vincularResponsable = async (data: any) => {
+  const response = await fetch(`${API_BASE}/monitorea/vincular`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al vincular responsable con usuario");
+  }
+
+  return await response.json();
+};
+export const crearCaracteristicaBD = async (data: any) => {
+  const response = await fetch(`${API_BASE}/caracteristica/crear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) throw new Error("Error al crear característica");
+  return await response.json();
 };
