@@ -4,7 +4,7 @@ import axios from "axios";
 // En dev:  VITE_API_URL=http://localhost:8098
 // En prod: VITE_API_URL=https://apptea-production.up.railway.app
 const API = import.meta.env.VITE_API_URL || "http://localhost:8098";
-const API_BASE = `${API}/api`;
+const API_BASE = `${API}`;
 
 // ========================
 // AUTH / USUARIO
