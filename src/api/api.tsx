@@ -280,7 +280,7 @@ export const crearResponsable = async (responsable: Responsable) => {
 };
 
 export const crearResponsableBD = async (data: any) => {
-  const response = await fetch("http://localhost:8098/api/responsable/crear", {
+  const response = await fetch(`${API_BASE}/responsable/crear`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
