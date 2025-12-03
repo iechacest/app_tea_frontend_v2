@@ -40,7 +40,7 @@ export default function MiPerfil() {
 const [responsables, setResponsables] = useState<Responsable[]>([]);
 const obtenerResponsablesPorUsuario = async (idUsuario: number): Promise<Responsable[]> => {
   try {
-    const response = await fetch(`http://localhost:8098/api/responsable/por-usuario?id_usuario=${idUsuario}`);
+    const response = await fetch(`https://apptea-production.up.railway.app/api/responsable/por-usuario?id_usuario=${idUsuario}`);
     if (!response.ok) throw new Error('Error al obtener los responsables');
     return await response.json(); // Asegúrate de que el tipo de retorno sea un array de responsables
   } catch (error) {
