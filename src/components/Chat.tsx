@@ -12,10 +12,17 @@ export default function Chat() {
   const { chatActual, agregarMensaje, setCurrentScreen, theme, setChatActual } = useApp();
 const [historialCargado, setHistorialCargado] = useState(false);
 
+const [mensajes, setMensajes] = useState<any[]>([]);
+const [cargandoMensajes, setCargandoMensajes] = useState(false);
+
 useEffect(() => {
   if (!chatActual) return;
-  if (historialCargado) return;
 
+  // 1️⃣ Limpiar pantalla y mostrar loading
+  setMensajes([]);
+  setCargandoMensajes(true);
+
+  // 2️⃣ Cargar mensajes
   obtenerMensajesPorChat(chatActual.id_chat)
     .then((mensajesBD) => {
       const mensajesConvertidos = mensajesBD.map((m: any) => ({
@@ -26,16 +33,15 @@ useEffect(() => {
         creadoEn: m.creadoEn
       }));
 
-      setChatActual({
-        ...chatActual,
-        mensajes: mensajesConvertidos
-      });
-
-      setHistorialCargado(true); // ← evita re-calls infinitos
+      setMensajes(mensajesConvertidos);
+      setCargandoMensajes(false);
     })
-    .catch(err => console.error("Error cargando mensajes:", err));
-}, [chatActual]);
+    .catch(err => {
+      console.error("Error cargando mensajes:", err);
+      setCargandoMensajes(false);
+    });
 
+}, [chatActual]);
 
 
 useEffect(() => {
@@ -149,6 +155,9 @@ useEffect(() => {
       {/* Conversación */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto space-y-4 pb-4">
+          {cargandoMensajes && (
+    <p style={{ color: themeColors.textSecondary }}>Cargando mensajes...</p>
+  )}
 
           {chatActual?.mensajes.map((msg) => (
             <div key={msg.id_mensaje} className={`flex ${msg.fuente === "USUARIO" ? "justify-end" : "justify-start"}`}>
