@@ -4,6 +4,7 @@ import { LogIn, Eye, EyeOff, Palette, Sparkles, Mail, Lock, Zap } from 'lucide-r
 import { getThemeColors, isDarkTheme } from '../config/themes';
 import BackgroundBubbles from './ui/BackgroundBubbles';
 import { loginUsuario } from "../api/api"; 
+import { Unlock } from 'lucide-react';
 
 export default function Login() {
   const {
@@ -48,11 +49,15 @@ export default function Login() {
 
     // Guardar datos base
     setUsuario({
+      id_usuario: usuario.id_usuario,
       nombres: usuario.nombres,
-      apellidos: usuario.apellidos,
-      fechaNacimiento: usuario.fechaNacimiento,
+      apellido_mat: usuario.apellido_mat,
+      apellido_pat: usuario.apellido_pat,
+      fecha_nac: usuario.fecha_nac,
       genero: usuario.genero,
       email: usuario.email,
+      pais: usuario.pais,
+      nivel_tea: usuario.nivel_tea
     });
 
     setResponsable(usuario.responsable || null);
@@ -222,6 +227,23 @@ export default function Login() {
             ></div>
           </button>
         </form>
+
+        <div className="flex justify-center mt-6 animate-fadeIn">
+  <button
+    type="button"
+    onClick={() => ""}
+    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-[1.05] hover:shadow-lg focus:outline-none"
+    style={{
+      color: themeColors.primary,
+      backgroundColor: 'white',
+      backdropFilter: "blur(8px)",
+      boxShadow: "0 8px 20px rgba(0,0,0,0.15)"
+    }}
+  >
+    <Unlock size={18} className="transition-transform duration-300 group-hover:rotate-12" />
+    ¿Olvidaste tu contraseña?
+  </button>
+</div>
 
         <div className="mt-8 text-center">
           <p className="mb-4" style={{ color: themeColors.textSecondary }}>
